@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import WalletConnectScreen from "@/screens/WalletConnect";
 import EmailConnectScreen from "@/screens/EmailConnect";
 import CaptchaScreen from "@/screens/Captcha";
+import TypingBioId from "@/screens/TypingBioId";
 import Preloader from "@/components/Preloader";
 import handleException from "@/utils/handle-exception";
 import * as alerts from "@/utils/alerts";
@@ -22,6 +23,7 @@ const DashboardContainer = ({ children }) => {
 	const isCaptchaVerified = isEmpty(hcaptchaSiteKey)
 		? true
 		: user?.verifications?.captcha === true;
+	const isBioIdVerified = user?.verifications?.bioId === true;
 
 	useEffect(() => {
 		// Cancel preloader
@@ -72,7 +74,15 @@ const DashboardContainer = ({ children }) => {
 			{!isEmpty(user) && !isEmpty(address) && !isCaptchaVerified && (
 				<CaptchaScreen />
 			)}
-			{!isEmpty(user) && !isEmpty(address) && isCaptchaVerified && children}
+			{!isEmpty(user) &&
+				!isEmpty(address) &&
+				isCaptchaVerified &&
+				!isBioIdVerified && <TypingBioId />}
+			{!isEmpty(user) &&
+				!isEmpty(address) &&
+				isCaptchaVerified &&
+				isBioIdVerified &&
+				children}
 		</Pane>
 	);
 };

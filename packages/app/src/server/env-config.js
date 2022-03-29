@@ -13,3 +13,6 @@ export const discord = {
 };
 
 export const hcaptchaSecretKey = process.env.HCAPTCHA_SECRET_KEY;
+
+export const typingDnaApiKey = process.env.NEXT_PUBLIC_TYPINGDNA_API_KEY;
+export const typingDnaSecretKey = process.env.TYPINGDNA_SECRET_KEY;

@@ -12,7 +12,7 @@ import { supabase } from "@/utils/supabase-client";
 import { identifyUser } from "@/utils/signals";
 import { setUser as setErrorTrackingUser } from "@/utils/handle-exception";
 import useAuthStateChange from "@/hooks/use-auth-state-change";
-import { checkCaptcha } from "@/actions/user";
+import { checkCaptcha, checkTypingBioId } from "@/actions/user";
 
 export const UserContext = createContext();
 
@@ -31,7 +31,8 @@ const UserContextProvider = ({ children }) => {
 			if (u.role === "authenticated") {
 				// Here we fetch user verifications
 				const captcha = await checkCaptcha(u);
-				const checkedUser = { ...u, verifications: { captcha } };
+				const bioId = await checkTypingBioId(u);
+				const checkedUser = { ...u, verifications: { captcha, bioId } };
 				setUser(checkedUser);
 				setErrorTrackingUser(checkedUser);
 				identifyUser(checkedUser);
