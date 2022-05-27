@@ -8,7 +8,6 @@ import { useUser, useArConnect } from "@/hooks/";
 import { ARCONNECT_CHROME_URL, ARCONNECT_FIREFOX_URL } from "@/constants";
 import { UilLockOpenAlt } from "@iconscout/react-unicons";
 import ArConnectIcon from "@/assets/icon/arconnect.svg";
-import { magic } from "@/utils/magic-client";
 
 export type Props = {
 	onConnect: (type: Connections) => void;

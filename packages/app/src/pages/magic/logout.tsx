@@ -1,8 +1,8 @@
 import { useEffect } from "react";
-import Script from "next/script";
+// import Script from "next/script";
 import { useRouter } from "next/router";
 
-import { magicPublicKey } from "@/env-config";
+// import { magicPublicKey } from "@/env-config";
 import Preloader from "@/components/Preloader";
 
 const MagicLogin = () => {
@@ -21,13 +21,19 @@ const MagicLogin = () => {
 	return (
 		<>
 			<Preloader message="Logging out of Magic..." />
-			<Script
-				src="https://auth.magic.link/pnp/logout"
-				data-magic-publishable-api-key={magicPublicKey}
-				data-redirect-uri="/login"
-			/>
 		</>
 	);
 };
+
+export async function getStaticProps() {
+	return {
+		props: {
+			magic: {
+				action: "login",
+				redirectUri: "/login"
+			}
+		}
+	};
+}
 
 export default MagicLogin;

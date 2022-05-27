@@ -15,7 +15,7 @@ import React, {
 import useLocalStorage from "use-local-storage";
 import produce from "immer";
 import allSettled from "promise.allsettled";
-import { RPCError, RPCErrorCode } from "magic-sdk";
+// import { RPCError, RPCErrorCode } from "magic-sdk";
 import { useRouter } from "next/router";
 
 import useArConnect from "@/hooks/use-arconnect";
@@ -26,7 +26,7 @@ import handleException, {
 } from "@/utils/handle-exception";
 import { identifyUser } from "@/utils/signals";
 import Authenticate from "@/modules/auth";
-import { magic } from "@/utils/magic-client";
+import getMagicClient from "@/utils/magic-client";
 // import * as api from "@/api";
 
 import LogoImage from "@/assets/logo/Logo-Icon.svg";
@@ -113,14 +113,13 @@ const UserContextProvider: React.FC<Props> = ({ children }) => {
 				}
 				case Connections.MAGIC: {
 					// Produce the user with Magic here...
-					if (magic) {
-						const idToken = await magic.user.getIdToken();
-						console.log(idToken);
-						const idToken2 = await magic.user.getIdToken();
-						console.log(idToken2);
-						const idToken3 = await magic.user.getIdToken();
-						console.log(idToken3);
-					}
+					// const magic = getMagicClient();
+					// const idToken = await magic.user.getIdToken();
+					// console.log(idToken);
+					// const idToken2 = await magic.user.getIdToken();
+					// console.log(idToken2);
+					// const idToken3 = await magic.user.getIdToken();
+					// console.log(idToken3);
 					break;
 				}
 				default: {

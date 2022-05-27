@@ -1,83 +1,15 @@
-import { Magic } from "magic-sdk";
-import { OAuthExtension } from "@magic-ext/oauth";
-import { magicPublicKey } from "@/env-config";
-// import type { Magic } from "magic-sdk/dist/types/index";
-// import type IOAuthExtension from '@magic-ext/oauth/dist/types/index.cdn';
+// See for reference: https://github.com/magiclabs/magic-js/blob/master/packages/%40magic-sdk/pnp/src/types.ts
 
+import type OAuthExtension from "@magic-ext/oauth/dist/types/index.cdn";
 import type CDNMagic from "magic-sdk/dist/types/index.cdn";
 
-import type { MagicUserMetadata } from "@magic-sdk/types";
-
-// type IMagic = Magic;
-
-declare module "magic-sdk" {
-	interface Magic {
-		Extension: typeof CDNMagic.Extension;
+declare global {
+	interface Window {
+		Magic: typeof CDNMagic;
+		MagicOAuthExtension?: typeof OAuthExtension;
 	}
 }
 
-export class PlugNPlayExtension extends Magic.Extension.Internal<
-	"pnp",
-	{ isPnP: boolean }
-> {
-	config = { isPnP: true };
-
-	name = "pnp" as const;
-
-	public static storageKeys = {
-		lastUsedProvider: "pnp/lastUsedProvider"
-	};
-
-	public getLoginMethod(options: {
-		debug?: boolean;
-		termsOfServiceURI?: string;
-		privacyPolicyURI?: string;
-	}) {
-		return this.utils.createPromiEvent<[string, string | undefined]>(
-			async (resolve) => {
-				const lastUsedProvider = await this.utils.storage.getItem<
-					string | undefined
-				>(PlugNPlayExtension.storageKeys.lastUsedProvider);
-
-				resolve(
-					await this.request(
-						this.utils.createJsonRpcRequestPayload("pnp/login", [
-							{ lastUsedProvider, ...options }
-						])
-					)
-				);
-			}
-		);
-	}
-
-	public showSettings() {
-		return this.request(this.utils.createJsonRpcRequestPayload("pnp/settings"));
-	}
-
-	public async saveLastUsedProvider(provider?: string) {
-		if (provider) {
-			await this.utils.storage.setItem(
-				PlugNPlayExtension.storageKeys.lastUsedProvider,
-				provider
-			);
-		}
-	}
-
-	public encodeUserMetadata(userMetadata: MagicUserMetadata) {
-		return this.utils.encodeJSON(userMetadata);
-	}
-
-	public decodeUserMetadata(
-		userMetadataQueryString?: string | null
-	): MagicUserMetadata | null {
-		if (!userMetadataQueryString) return null;
-		return this.utils.decodeJSON(userMetadataQueryString);
-	}
-}
-
-export const magic =
-	typeof window !== "undefined"
-		? new Magic(magicPublicKey!, {
-				extensions: [new OAuthExtension()]
-		  })
-		: null;
+export default () => {
+	return window.Magic;
+};

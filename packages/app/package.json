@@ -22,8 +22,6 @@
 		"@linaria/core": "^3.0.0-beta.15",
 		"@linaria/react": "^3.0.0-beta.15",
 		"@magic-ext/oauth": "^2.1.1",
-		"@magic-sdk/pnp": "^2.1.1",
-		"@magic-sdk/types": "^7.1.1",
 		"@sentry/nextjs": "^6.19.2",
 		"@supabase/supabase-js": "^1.34.0",
 		"@usher/prisma": "*",
