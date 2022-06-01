@@ -10,7 +10,8 @@ import {
 	Pane,
 	majorScale,
 	ArrowLeftIcon,
-	Spinner
+	Spinner,
+	Badge
 } from "evergreen-ui";
 import { css } from "@linaria/core";
 import CopyToClipboard from "react-copy-to-clipboard";
@@ -24,7 +25,7 @@ import { Wallet, Chains, Connections } from "@/types";
 import truncate from "@/utils/truncate";
 import getArweaveClient from "@/utils/arweave-client";
 import WalletConnect from "@/components/WalletConnect";
-import { useArConnect, useUser } from "@/hooks";
+import { useArConnect, useUser, useDefaultWallets } from "@/hooks";
 import { connectionImages } from "@/utils/connections-map";
 
 const arweave = getArweaveClient();
@@ -76,6 +77,7 @@ const WalletsManager: React.FC<Props> = ({ onClose }) => {
 	});
 	const [getArConnect] = useArConnect();
 	const [hiddenConnections, setHiddenConnections] = useState<Connections[]>([]);
+	const [defaultWallets, setDefaultWallet] = useDefaultWallets();
 
 	useEffect(() => {
 		(async () => {
@@ -237,23 +239,28 @@ const WalletsManager: React.FC<Props> = ({ onClose }) => {
 												</Pane>
 												<Pane>
 													<Tooltip content="Copy Address">
-														<Pane>
-															<CopyToClipboard
-																text={wallet.address}
-																onCopy={onCopy}
-															>
-																<Label
-																	color={colors.gray800}
-																	className={css`
-																		cursor: pointer;
-																		&:active {
-																			opacity: 0.8;
-																		}
-																	`}
+														<Pane display="flex" alignItems="center">
+															<Pane marginRight={8}>
+																<CopyToClipboard
+																	text={wallet.address}
+																	onCopy={onCopy}
 																>
-																	{truncate(wallet.address, 6, 4)}
-																</Label>
-															</CopyToClipboard>
+																	<Label
+																		color={colors.gray800}
+																		className={css`
+																			cursor: pointer;
+																			&:active {
+																				opacity: 0.8;
+																			}
+																		`}
+																	>
+																		{truncate(wallet.address, 6, 4)}
+																	</Label>
+																</CopyToClipboard>
+															</Pane>
+															{wallet.address === defaultWallets[chain] && (
+																<Badge color="purple">Default</Badge>
+															)}
 														</Pane>
 													</Tooltip>
 												</Pane>

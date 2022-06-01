@@ -225,7 +225,7 @@ const UserContextProvider: React.FC<Props> = ({ children }) => {
 
 	const setCaptcha = useCallback(
 		(value: boolean) => {
-			setUser(
+			saveUser(
 				produce(user, (draft) => {
 					draft.verifications.captcha = value;
 				})
@@ -236,7 +236,7 @@ const UserContextProvider: React.FC<Props> = ({ children }) => {
 
 	const setProfile = useCallback(
 		(profile: Profile) => {
-			setUser(
+			saveUser(
 				produce(user, (draft) => {
 					draft.profile = profile;
 				})
@@ -255,7 +255,7 @@ const UserContextProvider: React.FC<Props> = ({ children }) => {
 			}
 			const auth = await authInstance.getAuth(walletAddress);
 			const partnerships = await auth.addPartnership(partnership);
-			setUser(
+			saveUser(
 				produce(user, (draft) => {
 					draft.wallets = user.wallets.map((wallet) => {
 						if (wallet.address === walletAddress) {
