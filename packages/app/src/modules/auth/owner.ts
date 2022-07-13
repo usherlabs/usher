@@ -13,9 +13,9 @@ import * as uint8arrays from "uint8arrays";
 import uniq from "lodash/uniq";
 import uniqWith from "lodash/uniqWith";
 import isEqual from "lodash/isEqual";
-
 import { ShareableOwnerModel } from "@usher/ceramic";
 
+import handleException from "@/utils/handle-exception";
 import { APP_DID } from "@/constants";
 import { Partnership, CampaignReference, Profile } from "@/types";
 import Auth from "./auth";
@@ -34,19 +34,19 @@ type SetObject = {
 	set: string[];
 };
 
+type VaultObject = {
+	vault: string;
+};
+
 const CERAMIC_PARTNERSHIPS_KEY = "partnerships";
-const CERAMIC_PROFILES_KEY = "userProfiles";
+const CERAMIC_PROFILE_KEY = "userProfile";
 
 class OwnerAuth extends Auth {
 	protected _id: string = ""; // id of stream for content
 
 	protected _partnerships: Partnership[] = [];
 
-	protected _profile: {
-		id: string;
-		doc: TileDocument<Record<string, string>> | null;
-		data: Profile | null;
-	} = { id: "", doc: null, data: null };
+	protected _profile: Profile | null = null;
 
 	protected loader: TileLoader;
 
@@ -70,7 +70,7 @@ class OwnerAuth extends Auth {
 	}
 
 	public get profile() {
-		return this._profile.data;
+		return this._profile;
 	}
 
 	/**
@@ -203,46 +203,34 @@ class OwnerAuth extends Auth {
 	 * Load the first profile is the set of profiles
 	 */
 	public async loadProfile() {
-		const setObj = await this.store.get(CERAMIC_PROFILES_KEY);
-		if (!setObj) {
+		const vaultObj = await this.store.get(CERAMIC_PROFILE_KEY);
+		if (!vaultObj) {
 			return;
 		}
-		const { set = [] } = setObj as SetObject;
-		if (set.length === 0) {
+		const { vault = "" } = vaultObj as VaultObject;
+		if (!vault) {
 			return;
 		}
-		const doc = await this.loader.load<Profile>(set[0]);
 		const profileData: Profile = {
 			email: ""
 		};
-		const entries = await Promise.all(
-			Object.entries(doc.content).map(async ([key, value]) => {
-				let v = new Uint8Array();
-				try {
-					const jwe = JSON.parse(Base64.decode(value));
-					const dec = await this.did.decryptJWE(jwe);
-					v = dec;
-				} catch (e) {
-					// ...
-				}
-				return {
-					key,
-					value: v
-				};
-			})
-		);
-		entries.forEach(({ key, value }) => {
-			if (key === "email") {
-				profileData[key] = uint8arrays.toString(value);
-			}
-		});
+		let blob;
+		try {
+			const jwe = JSON.parse(Base64.decode(vault));
+			const dec = await this.did.decryptJWE(jwe, { did: this.did.id });
+			blob = JSON.parse(uint8arrays.toString(dec));
+		} catch (e) {
+			handleException(e);
+		}
+		// ? Here we can add some jsonschema validation -- this.model.getSchemaURL("userProfile")
+		if (!("email" in blob)) {
+			handleException(ono("User Profile data has been malformed", { blob }));
+			return;
+		}
 
-		this._profile = {
-			id: set[0],
-			// @ts-ignore
-			doc,
-			data: profileData
-		};
+		profileData.email = blob?.email || "";
+
+		this._profile = profileData;
 	}
 
 	/**
@@ -254,23 +242,14 @@ class OwnerAuth extends Auth {
 			...currentProfile,
 			...newProfile
 		};
-		const entries = await Promise.all(
-			Object.entries(profile).map(async ([key, value]) => {
-				const jwe = await this.did.createJWE(uint8arrays.fromString(value), [
-					this.did.id,
-					APP_DID // Share with App
-				]);
-				const res = Base64.encode(JSON.stringify(jwe));
-				return {
-					key,
-					value: res
-				};
-			})
+		const jwe = await this.did.createJWE(
+			uint8arrays.fromString(JSON.stringify(profile)),
+			[
+				this.did.id,
+				APP_DID // Share with App
+			]
 		);
-		const encProfiles: Record<string, string> = {};
-		entries.forEach(({ key, value }) => {
-			encProfiles[key] = value;
-		});
+		const res = Base64.encode(JSON.stringify(jwe));
 
 		if (this._profile.doc === null) {
 			const doc = await TileDocument.create(

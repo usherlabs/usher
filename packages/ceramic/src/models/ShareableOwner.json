@@ -1,13 +1,14 @@
 {
 	"definitions": {
 		"partnerships": "kjzl6cwe1jw146azxsv8zbvshytfo3pl7n4qi5ws27m9tdwlrkx4x3rr7pu87ym",
-		"userProfiles": "kjzl6cwe1jw14a83pbspwq4urthrjy5rlr1tixzdmbwxru8fr1x4f69xs326yx1"
+		"userProfile": "kjzl6cwe1jw1476e1jls7vldg1jvuqvx72gnj3p1crof1jwihwzl2aucohjk47m"
 	},
 	"schemas": {
 		"partnership": "ceramic://k3y52l7qbv1frxxrl1975l1qw7x72jt1tw9lref6x4h552xuwzwo49ujawj0nf1fk",
 		"partnerships": "ceramic://k3y52l7qbv1fryph2fvbie0kuoddfxgucqytf61j5qomvosudq2dxrzcf1dwx1g5c",
 		"set": "ceramic://k3y52l7qbv1frxvyrz4ylpcax4xnemqiofnjavnq1tc925arra1kr08qmke3qx1j4",
-		"userProfile": "ceramic://k3y52l7qbv1frxjueqjrya37tm15ixbe5tsmbd9l4qqo67dmuqj50sdr37u7xornk"
+		"userProfile": "ceramic://k3y52l7qbv1frxjueqjrya37tm15ixbe5tsmbd9l4qqo67dmuqj50sdr37u7xornk",
+		"vault": "ceramic://k3y52l7qbv1frxmml0340q7oyfh6ejwtaarktc3eyw5kgdputc5kt8ap77q4bxce8"
 	},
 	"tiles": {}
 }

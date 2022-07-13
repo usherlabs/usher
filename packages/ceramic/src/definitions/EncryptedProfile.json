@@ -1,0 +1,5 @@
+{
+	"name": "An encrypted user profile",
+	"description": "A user profile that contains information worth encrypting. This represents user owned profile data on Usher.so",
+	"schema": "ceramic://"
+}

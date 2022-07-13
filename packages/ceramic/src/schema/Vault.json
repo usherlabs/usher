@@ -1,0 +1,12 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Vault",
+	"type": "object",
+	"properties": {
+		"vault": {
+			"description": "A string that contains an ecrypted JSON blob.",
+			"type": "string"
+		}
+	},
+	"required": ["vault"]
+}

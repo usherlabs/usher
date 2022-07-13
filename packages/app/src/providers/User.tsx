@@ -228,11 +228,6 @@ const UserContextProvider: React.FC<Props> = ({ children }) => {
 		[user]
 	);
 
-	const connect = useCallback(async (type: Connections) => {
-		const newWallets = await connectWallet(type);
-		await loadUserWithWallets(newWallets); // loading user data on every new login as partnerships/profiles are not fetched after owners are merged
-	}, []);
-
 	// Reloading the screen will refresh authentications
 
 	const setCaptcha = useCallback(
@@ -372,6 +367,11 @@ const UserContextProvider: React.FC<Props> = ({ children }) => {
 		}),
 		[]
 	);
+
+	const connect = useCallback(async (type: Connections) => {
+		const newWallets = await connectWallet(type);
+		await loadUserWithWallets(newWallets); // loading user data on every new login as partnerships/profiles are not fetched after owners are merged
+	}, []);
 
 	const { wallets } = user;
 	useEffect(() => {
