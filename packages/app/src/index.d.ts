@@ -26,6 +26,7 @@ declare module "@iconscout/react-unicons" {
 	export const UilFileContract: Icon;
 	export const UilLabel: Icon;
 	export const UilNotes: Icon;
+	export const UilFileShieldAlt: Icon;
 }
 
 declare module "@usher/ceramic";
