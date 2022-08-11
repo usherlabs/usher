@@ -16,7 +16,7 @@ import isEqual from "lodash/isEqual";
 
 import { ShareableOwnerModel } from "@usher/ceramic";
 
-import { Partnership, CampaignReference } from "@/types";
+import { Partnership, PartnershipData, Chains } from "@/types";
 import Auth from "./auth";
 import WalletAuth from "./wallet";
 
@@ -113,13 +113,13 @@ class OwnerAuth extends Auth {
 		}
 		const { set } = setObj as SetObject;
 		const streams = await Promise.all(
-			set.map((id) => this.loader.load<CampaignReference>(id))
+			set.map((id) => this.loader.load<PartnershipData>(id))
 		);
 		console.log("[Dev] fetched partnerships", streams);
 
 		const partnerships = streams.map((stream) => ({
 			id: stream.id.toString(),
-			campaign: stream.content
+			...stream.content
 		}));
 		this._partnerships = partnerships;
 
@@ -135,24 +135,20 @@ class OwnerAuth extends Auth {
 	 *
 	 * @return  {[type]}                    [return description]
 	 */
-	public async addPartnership(
-		campaign: CampaignReference
-	): Promise<Partnership[]> {
+	public async addPartnership(campaignAddress: string): Promise<Partnership[]> {
 		// Check if Partnership already exists
-		if (
-			this.partnerships.find(
-				({ campaign: c }) =>
-					c.chain === campaign.chain && c.address === campaign.address
-			)
-		) {
-			throw ono("Partnership already exists", campaign);
+		if (this.partnerships.find((p) => p.address === campaignAddress)) {
+			throw ono("Partnership already exists", campaignAddress);
 		}
 
 		console.log(`Creating Partnership...`);
 		const doc = await TileDocument.create(
 			// @ts-ignore
 			this._ceramic,
-			campaign,
+			{
+				chain: Chains.ARWEAVE,
+				address: campaignAddress
+			},
 			{
 				schema: this.model.getSchemaURL("partnership"),
 				family: "usher:partnerships"
@@ -180,7 +176,7 @@ class OwnerAuth extends Auth {
 			...this._partnerships,
 			{
 				id: doc.id.toString(),
-				campaign
+				address: campaignAddress
 			}
 		];
 

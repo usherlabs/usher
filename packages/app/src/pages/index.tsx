@@ -21,13 +21,13 @@ import isEqual from "lodash/isEqual";
 import { useUser } from "@/hooks";
 import CampaignCard from "@/components/CampaignCard";
 import Anchor from "@/components/Anchor";
-import { Campaign, CampaignReference } from "@/types";
+import { Campaign } from "@/types";
 import delay from "@/utils/delay";
 import { useSeedData } from "@/env-config";
 import * as api from "@/api";
 import * as mediaQueries from "@/utils/media-queries";
 
-const getCampaigns = async (refs: CampaignReference[]): Promise<Campaign[]> => {
+const getCampaigns = async (refs: string[]): Promise<Campaign[]> => {
 	if (useSeedData) {
 		await delay(2000);
 		const campaignsData = (await import("@/seed/campaigns.json")).default;
@@ -51,7 +51,7 @@ const Partnerships = () => {
 		isLoading: isUserLoading
 	} = useUser();
 	const campaigns = useQuery(["active-campaigns", partnerships], () =>
-		getCampaigns(partnerships.map(({ campaign }) => campaign))
+		getCampaigns(partnerships.map((p) => p.address))
 	);
 	const isLoading = isUserLoading || campaigns.isLoading;
 

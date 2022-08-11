@@ -41,7 +41,7 @@ const CampaignInfoAccordions: React.FC<Props> = ({ campaign }) => {
 
 	let rewardContractAddressUrl = "";
 	if (campaign.reward.address) {
-		if (campaign.chain === Chains.ARWEAVE) {
+		if (campaign.reward.chain === Chains.ARWEAVE) {
 			rewardContractAddressUrl = `https://viewblock.io/arweave/address/${campaign.reward.address}`;
 		}
 	}
@@ -308,7 +308,7 @@ const CampaignInfoAccordions: React.FC<Props> = ({ campaign }) => {
 						</Pane>
 						<Pane>
 							<Label>Blockchain</Label>
-							<Label>{pascalCase(campaign.chain)}</Label>
+							<Label>{pascalCase(campaign.reward.chain)}</Label>
 						</Pane>
 					</AccordionItemPanel>
 				</AccordionItem>

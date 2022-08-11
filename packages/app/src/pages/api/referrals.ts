@@ -6,7 +6,7 @@ import { aql } from "arangojs";
 import { ArangoError } from "arangojs/error";
 import { ShareableOwnerModel } from "@usher/ceramic";
 
-import { CampaignReference } from "@/types";
+import { PartnershipData, Partnership } from "@/types";
 import { useRouteHandler } from "@/server/middleware";
 import { getAppDID } from "@/server/did";
 import { ceramic } from "@/utils/ceramic-client";
@@ -35,18 +35,20 @@ handler.router.post(async (req, res) => {
 			success: false
 		});
 	}
-	const { partnership } = body;
+	const { partnership: partnershipId } = body;
 	const did = await getAppDID();
 
-	const stream = await loader.load<CampaignReference>(partnership);
-	const campaignRef = stream.content;
+	const stream = await loader.load<PartnershipData>(partnershipId);
+	const partnership: Partnership = {
+		id: stream.id.toString(),
+		...stream.content
+	};
 	const [controller] = stream.controllers;
 
 	// Validate that the provided partnership is valid
 	if (
 		!(
-			campaignRef.address &&
-			campaignRef.chain &&
+			partnership.address &&
 			controller &&
 			stream.metadata.schema === ShareableOwnerModel.schemas.partnership
 		)
@@ -55,7 +57,6 @@ handler.router.post(async (req, res) => {
 			{
 				vars: {
 					partnership,
-					campaignRef,
 					controller,
 					schema: stream.metadata.schema,
 					modelSchema: ShareableOwnerModel.schemas.partnership
@@ -73,10 +74,8 @@ handler.router.post(async (req, res) => {
 	// Ensure that the partnership has been indexed
 	const dataCursor = await arango.query(aql`
 		RETURN {
-			partnership: DOCUMENT("Partnerships", ${partnership}),
-			campaign: DOCUMENT("Campaigns", ${[campaignRef.chain, campaignRef.address].join(
-				":"
-			)})
+			partnership: DOCUMENT("Partnerships", ${partnership.id}),
+			campaign: DOCUMENT("Campaigns", ${partnership.address})
 		}
 	`);
 	const dataResults = await dataCursor.all();
@@ -87,8 +86,7 @@ handler.router.post(async (req, res) => {
 		req.log.warn(
 			{
 				vars: {
-					partnership,
-					campaignRef
+					partnership
 				}
 			},
 			"Campaign does not exist"
@@ -108,11 +106,10 @@ handler.router.post(async (req, res) => {
 			{ vars: { partnership, controller } },
 			"Indexing Partnership..."
 		);
-		const partnershipId = stream.id.toString();
 		try {
 			const cursor = await arango.query(aql`
 			INSERT {
-				_key: ${partnershipId},
+				_key: ${partnership.id},
 				created_at: ${Date.now()},
 				rewards: 0
 			} INTO Partnerships OPTIONS { waitForSync: true }
@@ -125,7 +122,7 @@ handler.router.post(async (req, res) => {
 				FOR params IN [
 					{
 						_from: p._id,
-						_to: ${`Campaigns/${[campaignRef.chain, campaignRef.address].join(":")}`}
+						_to: ${`Campaigns/${partnership.address}`}
 					},
 					{
 						_from: CONCAT("Dids/", ${controller}),
@@ -159,7 +156,7 @@ handler.router.post(async (req, res) => {
 	if (campaignData.disable_verification !== true) {
 		// Check that the Partner is Verified, if the Campaign requires as such
 		const verifyCheckCursor = await arango.query(aql`
-			FOR d IN 1..1 INBOUND CONCAT("Partnerships/", ${partnership}) Engagements
+			FOR d IN 1..1 INBOUND CONCAT("Partnerships/", ${partnership.id}) Engagements
 				FOR did IN 1..1 ANY d Related
 					COLLECT _id = did._id
 					FOR e IN 1..1 OUTBOUND _id Verifications
@@ -205,7 +202,7 @@ handler.router.post(async (req, res) => {
 		} INTO Conversions OPTIONS { waitForSync: true }
 		LET c = NEW
 		INSERT {
-			_from: CONCAT("Partnerships/", ${partnership}),
+			_from: CONCAT("Partnerships/", ${partnership.id}),
 			_to: c._id
 		} INTO Referrals
 		LET r = NEW
@@ -224,9 +221,7 @@ handler.router.post(async (req, res) => {
 	const jwe = await did.createJWE(uint8arrays.fromString(raw), [did.id]);
 	const token = Base64.encodeURI(JSON.stringify(jwe));
 
-	const prefix = Base64.encodeURI(
-		[campaignData.chain, campaignData.id].join(":")
-	);
+	const prefix = Base64.encodeURI(campaignData.id);
 
 	const newToken = [prefix, token].join(".");
 

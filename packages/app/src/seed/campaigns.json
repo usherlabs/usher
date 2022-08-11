@@ -1,7 +1,6 @@
 [
 	{
 		"id": "ksFTLgrwQGtNrhRz6MWyd3a4lvK1Oh-QF1HYcEeeF12",
-		"chain": "arweave",
 		"owner": "ksFTLgrwQGtNrhRz6MWyd3a4lvK1Oh-QF1HYcEeeFVk",
 		"events": [
 			{
@@ -12,6 +11,7 @@
 		],
 		"reward": {
 			"name": "Arweave",
+			"chain": "arweave",
 			"ticker": "AR",
 			"type": "token",
 			"limit": 0

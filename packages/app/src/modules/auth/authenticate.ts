@@ -9,7 +9,7 @@ import { randomString } from "@stablelib/random";
 
 import { getMagicClient } from "@/utils/magic-client";
 import { getArweaveClient } from "@/utils/arweave-client";
-import { Chains, Wallet, Connections, CampaignReference } from "@/types";
+import { Chains, Wallet, Connections } from "@/types";
 import WalletAuth from "./wallet";
 import OwnerAuth from "./owner";
 
@@ -89,11 +89,11 @@ class Authenticate {
 		return this.owner.partnerships;
 	}
 
-	public addPartnership(p: CampaignReference) {
+	public addPartnership(campaignAddress: string) {
 		if (!this.owner) {
 			throw ono("No owner loaded to add partnerships to");
 		}
-		return this.owner.addPartnership(p);
+		return this.owner.addPartnership(campaignAddress);
 	}
 
 	/**

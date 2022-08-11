@@ -8,7 +8,7 @@ import { TileLoader } from "@glazed/tile-loader";
 import { ShareableOwnerModel } from "@usher/ceramic";
 import cors from "cors";
 
-import { CampaignReference, Campaign, CampaignStrategies } from "@/types";
+import { Campaign, CampaignStrategies, PartnershipData, Partnership } from "@/types";
 import { useRouteHandler, expressMiddleware } from "@/server/middleware";
 import { getAppDID } from "@/server/did";
 import { getArangoClient } from "@/utils/arango-client";
@@ -37,10 +37,9 @@ const startSchema = z.object({
 	token: z.string()
 });
 
-const isPartnershipStreamValid = (stream: TileDocument<CampaignReference>) => {
+const isPartnershipStreamValid = (stream: TileDocument<PartnershipData>) => {
 	return (
 		stream.content.address &&
-		stream.content.chain &&
 		stream.controllers.length > 0 &&
 		stream.metadata.schema === ShareableOwnerModel.schemas.partnership
 	);
@@ -69,7 +68,7 @@ handler.router
 				success: false
 			});
 		}
-		const { token, id: campaignId, chain: campaignChain } = body;
+		const { token, id: campaignId } = body;
 
 		if (!token) {
 			return res.status(400).json({
@@ -79,13 +78,10 @@ handler.router
 
 		const [campaignToken, referralToken] = token.split(".");
 
-		const campaignFromToken = Base64.decode(campaignToken).split(":");
+		const campaignIdFromToken = Base64.decode(campaignToken);
 
 		if (
-			campaignFromToken.length === 2
-				? campaignId !== campaignFromToken[1] ||
-				  campaignChain !== campaignFromToken[0]
-				: true
+			campaignId !== campaignIdFromToken
 		) {
 			req.log.error({ token }, "Could match token to campaign params");
 			return res.status(400).json({
@@ -108,10 +104,10 @@ handler.router
 		}
 
 		const sp = message.split(REFERRAL_TOKEN_DELIMITER);
-		const id = sp.shift();
-		const partnership = sp.join(REFERRAL_TOKEN_DELIMITER);
+		const id = sp.shift(); // Conversion ID
+		const partnershipId = sp.join(REFERRAL_TOKEN_DELIMITER); // Partnership ID
 
-		req.log.debug({ token, partnership, id }, "Token is valid");
+		req.log.debug({ token, partnershipId, id }, "Token is valid");
 
 		// Check conversion id of the token
 		const checkCursor = await arango.query(aql`
@@ -123,7 +119,7 @@ handler.router
 		);
 		if (checkResult.length === 0) {
 			req.log.error(
-				{ token, id, partnership, checkResult },
+				{ token, id, partnershipId, checkResult },
 				"Conversion does not exist within index"
 			);
 			return res.status(400).json({
@@ -137,7 +133,7 @@ handler.router
 		const [result] = checkResult;
 		if (result.converted_at) {
 			req.log.error(
-				{ token, id, partnership, checkResult },
+				{ token, id, partnershipId, checkResult },
 				"Seed conversion already converted"
 			);
 			return res.status(400).json({
@@ -146,7 +142,7 @@ handler.router
 		}
 
 		// Check the partnership id of the token
-		const stream = await loader.load<CampaignReference>(partnership);
+		const stream = await loader.load<PartnershipData>(partnershipId);
 		// Validate that the provided partnership is valid
 		if (
 			!isPartnershipStreamValid(
@@ -158,7 +154,7 @@ handler.router
 				{
 					token,
 					id,
-					partnership,
+					partnershipId,
 					streamContent: stream.content,
 					schema: stream.metadata.schema,
 					modelSchema: ShareableOwnerModel.schemas.partnership
@@ -170,12 +166,11 @@ handler.router
 			});
 		}
 
-		req.log.debug({ partnership }, "Partnership is valid");
+		req.log.debug({ partnershipId }, "Partnership is valid");
 
-		// Ensure the Advertiser provided chain and id matches the token's data
+		// Ensure the Advertiser provided id matches the token's data
 		if (
-			campaignId !== stream.content.address ||
-			campaignChain !== stream.content.chain
+			campaignId !== stream.content.address
 		) {
 			req.log.info(
 				{
@@ -195,7 +190,7 @@ handler.router
 
 		const rawCode = {
 			id,
-			partnership,
+			partnershipId,
 			message,
 			sig,
 			createdAt: Date.now(),
@@ -226,7 +221,7 @@ handler.router
 				success: false
 			});
 		}
-		const { code, ...conversion } = body;
+		const { code, id: campaignId, ...conversion } = body;
 		const did = await getAppDID();
 
 		// Destruct the code and verify the signature against the message
@@ -288,7 +283,7 @@ handler.router
 			});
 		}
 
-		const stream = await loader.load<CampaignReference>(raw.partnership);
+		const stream = await loader.load<PartnershipData>(raw.partnership);
 		// Validate that the provided partnership is valid
 		if (
 			!isPartnershipStreamValid(
@@ -313,18 +308,19 @@ handler.router
 			});
 		}
 
-		const partnershipId = stream.id.toString();
-		const campaignRef = stream.content;
+		const partnership: Partnership = {
+			id: stream.id.toString(),
+			...stream.content
+		}
 
 		// Ensure the Advertiser provided chain and id matches the token's data
 		if (
-			conversion.id !== campaignRef.address ||
-			conversion.chain !== campaignRef.chain
+			campaignId !== partnership.address ||
 		) {
 			req.log.info(
 				{
 					body,
-					campaignRef
+					partnership
 				},
 				"Payload does not match partnership"
 			);
@@ -336,9 +332,7 @@ handler.router
 		// Pull the campaign
 		//* In the future, we'll be pulling the campaign data from Smart Contracts.
 		const cursor = await arango.query(aql`
-			RETURN DOCUMENT("Campaigns", ${[campaignRef.chain, campaignRef.address].join(
-				":"
-			)})
+			RETURN DOCUMENT("Campaigns", ${campaignId})
 		`);
 		const results = (await cursor.all()).filter((result) => !isEmpty(result));
 		if (results.length === 0) {
@@ -374,7 +368,7 @@ handler.router
 			// Only check for native id related uniqueness if native_id is provided.
 			if (typeof event.nativeLimit === "undefined") {
 				const nativeIdCheckCursor = await arango.query(aql`
-					FOR c IN 1..1 OUTBOUND CONCAT("Partnerships/", ${partnershipId}) Referrals
+					FOR c IN 1..1 OUTBOUND CONCAT("Partnerships/", ${partnership.id}) Referrals
 						FILTER c.native_id == ${conversion.nativeId} AND c.event_id == ${conversion.eventId}
 						COLLECT WITH COUNT INTO length
 						RETURN length
@@ -393,7 +387,7 @@ handler.router
 				}
 			} else if (typeof commit === "number") {
 				const processedCheckCursor = await arango.query(aql`
-					FOR c IN 1..1 OUTBOUND CONCAT("Partnerships/", ${partnershipId}) Referrals
+					FOR c IN 1..1 OUTBOUND CONCAT("Partnerships/", ${partnership.id}) Referrals
 						FILTER c.native_id == ${conversion.nativeId} AND c.event_id == ${conversion.eventId}
 						COLLECT AGGREGATE processed = SUM(c.commit)
 						RETURN processed
@@ -470,10 +464,7 @@ handler.router
 			}
 		}
 
-		// // TODO: Include a process to check remaining rewards -- to determine the rewards to set
-		// // Should reflect how the validator nodes should validate conversions.
-		// // TODO: Do this inside of a "basis" validator node -- this will speed up the operation of this function too.
-		// ? We shouldn't be allocating rewards with the limit in consideration
+		// ? We're not allocating rewards with the limit in consideration
 		// ? Instead, you can earn as many limitless rewards, but may only withdraw up to a limit.
 
 		req.log.info(
@@ -483,9 +474,9 @@ handler.router
 		// Save the Conversion Data
 		// Update the associated Partnership's reward amount
 		const saveCursor = await arango.query(aql`
-			LET pDoc = DOCUMENT("Partnerships", ${partnershipId})
+			LET pDoc = DOCUMENT("Partnerships", ${partnership.id})
 			UPDATE { _key: ${raw.id}, } WITH {
-				partnership: ${partnershipId},
+				partnership: ${partnership.id},
 				message: ${raw.message},
 				sig: ${raw.sig},
 				event_id: ${conversion.eventId},

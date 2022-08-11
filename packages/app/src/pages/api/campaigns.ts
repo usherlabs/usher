@@ -14,7 +14,7 @@ handler.router.get(async (req, res) => {
 
 	let keys: string[] = [];
 	if (typeof q === "string") {
-		keys = q.split(","); // array of chain:address
+		keys = q.split(","); // array of addresses
 	}
 
 	req.log.info({ keys }, "Get campaigns for keys");

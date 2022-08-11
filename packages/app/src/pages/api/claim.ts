@@ -10,7 +10,8 @@ import uniq from "lodash/uniq";
 
 import {
 	AuthApiRequest,
-	CampaignReference,
+	Partnership,
+	PartnershipData,
 	Chains,
 	Claim,
 	RewardTypes
@@ -39,10 +40,9 @@ const arango = getArangoClient();
 const arweave = getArweaveClient();
 const warp = getWarp();
 
-const isPartnershipStreamValid = (stream: TileDocument<CampaignReference>) => {
+const isPartnershipStreamValid = (stream: TileDocument<PartnershipData>) => {
 	return (
 		stream.content.address &&
-		stream.content.chain &&
 		stream.controllers.length > 0 &&
 		stream.metadata.schema === ShareableOwnerModel.schemas.partnership
 	);
@@ -61,13 +61,13 @@ handler.router.use(withAuth).post(async (req, res) => {
 		});
 	}
 	const { partnership: partnershipParam, to } = body;
-	const partnerships = Array.isArray(partnershipParam)
+	const partnershipIds = Array.isArray(partnershipParam)
 		? uniq(partnershipParam)
 		: [partnershipParam];
 
 	// Get campaign from partnership
 	const streams = await Promise.all(
-		partnerships.map((p) => loader.load<CampaignReference>(p))
+		partnershipIds.map((id) => loader.load<PartnershipData>(id))
 	);
 	for (let i = 0; i < streams.length; i += 1) {
 		const stream = streams[i];
@@ -95,16 +95,15 @@ handler.router.use(withAuth).post(async (req, res) => {
 		}
 	}
 
-	const campaignRefs = streams.map((stream) => stream.content);
-	const partnershipIds = streams.map((stream) => stream.id.toString());
-	for (let i = 0; i < campaignRefs.length - 1; i += 1) {
-		if (
-			campaignRefs[i].address !== campaignRefs[i + 1].address ||
-			campaignRefs[i].chain !== campaignRefs[i + 1].address
-		) {
+	const partnerships: Partnership[] = streams.map((stream) => ({
+		id: stream.id.toString(),
+		...stream.content
+	}));
+	for (let i = 0; i < partnerships.length - 1; i += 1) {
+		if (partnerships[i].address !== partnerships[i + 1].address) {
 			req.log.warn(
 				{
-					data: { to, partnershipParam, campaignRef: campaignRefs[i] }
+					data: { to, partnershipParam, partnership: partnerships[i] }
 				},
 				"Partnership parameter is invalid. Partnerships are not for the same campaign."
 			);
@@ -113,10 +112,10 @@ handler.router.use(withAuth).post(async (req, res) => {
 			});
 		}
 	}
-	const [campaignRef] = campaignRefs; // all of the campaign references should be the same.
-	const campaignKey = [campaignRef.chain, campaignRef.address].join(":");
+	const campaignKey = partnerships[0].address;
 
 	// Validate that the partnership(s) and campaign are associated to authed dids
+	// This query will fetch all partnerships for their Ids and the Campaign
 	const checkCursor = await arango.query(aql`
 		FOR d IN ${req.user.map(({ did }) => did)}
 			FOR rd IN 1..1 ANY CONCAT("Dids/", d) Related
@@ -196,13 +195,13 @@ handler.router.use(withAuth).post(async (req, res) => {
 	let fee = 0;
 
 	// Ensure that amount to be paid is greater than amount in internal wallet -- otherwise send whatevers in the wallet and update partnership amount
-	if (campaignData.chain === Chains.ARWEAVE) {
+	if (campaignData.reward.chain === Chains.ARWEAVE) {
 		let rewardTxId = "";
 		let feeTxId = "";
 		const internalAddress = campaignData._internal.address;
 		const txTags = [
 			["Application", "Usher"],
-			["UsherCampaign", campaignRef.address],
+			["UsherCampaign", campaignKey],
 			["UsherPartnerships", partnershipIds.join(", ")]
 		];
 		if (appPackageName && appVersion) {
@@ -476,7 +475,7 @@ handler.router.use(withAuth).post(async (req, res) => {
 			req.log.error(
 				{
 					e,
-					data: { partnershipIds, campaignRef }
+					data: { partnershipIds, campaignKey }
 				},
 				"Cannot execute Arweave Rewards Transfer"
 			);

@@ -59,6 +59,7 @@ export type CampaignDetails = {
 };
 
 export type CampaignReward = {
+	chain: Chains;
 	name: string;
 	ticker: string;
 	type: RewardTypes;
@@ -70,7 +71,6 @@ export type CampaignReward = {
 
 export type Campaign = {
 	id: string;
-	chain: Chains;
 	owner: string;
 	events: {
 		// The strategy for which to calculate the rewards. Flat rewards are calculated per event. Percentage based rewards are calculated based on an amount value submitted at the point of conversion.
@@ -90,6 +90,7 @@ export type Campaign = {
 	reward: CampaignReward;
 	details: CampaignDetails;
 	advertiser: Advertiser;
+	funds?: number; // Number amount relative to the rewards
 	rewardsClaimed?: number;
 	disableVerification?: boolean;
 	unlisted?: boolean;
@@ -106,15 +107,14 @@ export type Wallet = {
 	address: string;
 };
 
-export type CampaignReference = {
-	chain: Chains;
+export type PartnershipData = {
+	chain?: Chains; // This isn't really used anymore within our application
 	address: string;
 };
 
 export type Partnership = {
 	id: string;
-	campaign: CampaignReference;
-};
+} & PartnershipData;
 
 export type Profile = {
 	email: string;
@@ -229,7 +229,7 @@ export interface IUserActions {
 	setCaptcha: (value: boolean) => void;
 	setPersonhood: (value: boolean) => void;
 	setProfile: (value: Profile) => Promise<void> | void;
-	addPartnership: (partnership: CampaignReference) => Promise<void> | void;
+	addPartnership: (partnership: string) => Promise<void> | void;
 }
 
 export interface IUserContext extends IUserActions {

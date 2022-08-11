@@ -19,14 +19,7 @@ import { Base64 } from "js-base64";
 
 import getArConnect from "@/utils/arconnect";
 import useArConnect from "@/hooks/use-arconnect";
-import {
-	User,
-	IUserContext,
-	Wallet,
-	Connections,
-	Profile,
-	CampaignReference
-} from "@/types";
+import { User, IUserContext, Wallet, Connections, Profile } from "@/types";
 import delay from "@/utils/delay";
 import handleException from "@/utils/handle-exception";
 import Authenticate from "@/modules/auth";
@@ -256,9 +249,9 @@ const UserContextProvider: React.FC<Props> = ({ children }) => {
 	);
 
 	const addPartnership = useCallback(
-		async (partnership: CampaignReference) => {
-			const partnerships = await authInstance.addPartnership(partnership);
-			events.emit(AppEvents.START_PARTNERSHIP, { partnership });
+		async (campaignAddress: string) => {
+			const partnerships = await authInstance.addPartnership(campaignAddress);
+			events.emit(AppEvents.START_PARTNERSHIP, { campaignAddress });
 
 			const newUser = produce(user, (draft) => {
 				draft.partnerships = [...partnerships];

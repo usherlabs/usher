@@ -1,6 +1,5 @@
 import ky from "ky";
 import {
-	CampaignReference,
 	Campaign,
 	PartnershipMetrics,
 	Referral,
@@ -78,18 +77,16 @@ export const bot = () => ({
 
 export const campaigns = () => ({
 	get: (
-		references?: CampaignReference | CampaignReference[]
+		addresses?: string | string[]
 	): Promise<{ success: boolean; data: Campaign[] }> => {
 		let qs = "";
-		if (references) {
-			if (!Array.isArray(references)) {
-				references = [references];
+		if (addresses) {
+			if (!Array.isArray(addresses)) {
+				addresses = [addresses];
 			}
-			if (references.length > 0) {
+			if (addresses.length > 0) {
 				const params = new URLSearchParams();
-				const q = references
-					.map((ref) => [ref.chain, ref.address].join(":"))
-					.join(",");
+				const q = addresses.join(",");
 				params.set("q", q);
 				qs = `?${params.toString()}`;
 			}
