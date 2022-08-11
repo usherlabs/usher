@@ -184,7 +184,7 @@ const WalletsManager: React.FC<Props> = ({ onClose }) => {
 						<Paragraph marginTop={8}>
 							Confirmed transaction&nbsp;
 							<Anchor
-								href={`https://viewblock.io/arweave/tx/${tx.id}`}
+								href={`https://v2.viewblock.io/arweave/tx/${tx.id}`}
 								external
 							>
 								<Strong color={colors.blue500} textDecoration="underline">

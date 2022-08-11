@@ -6,10 +6,10 @@ const LegacyCampaignPage = () => {
 
 export const getServerSideProps = async ({
 	res,
-	query: { id }
+	query: { legacy: id }
 }: {
 	res: ApiResponse;
-	query: { id: string };
+	query: { legacy: string };
 }) => {
 	if (id) {
 		res.writeHead(301, {

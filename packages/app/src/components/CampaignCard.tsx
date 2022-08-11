@@ -28,7 +28,7 @@ const CampaignCard: React.FC<Props> = ({ campaign }) => {
 				}
 			`}
 		>
-			<Anchor href={`/campaign/arweave/${campaign.id}`}>
+			<Anchor href={`/campaign/${campaign.id}`}>
 				<Pane
 					border
 					borderRadius={8}

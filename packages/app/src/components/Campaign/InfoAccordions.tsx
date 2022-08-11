@@ -42,7 +42,7 @@ const CampaignInfoAccordions: React.FC<Props> = ({ campaign }) => {
 	let rewardContractAddressUrl = "";
 	if (campaign.reward.address) {
 		if (campaign.reward.chain === Chains.ARWEAVE) {
-			rewardContractAddressUrl = `https://viewblock.io/arweave/address/${campaign.reward.address}`;
+			rewardContractAddressUrl = `https://v2.viewblock.io/arweave/address/${campaign.reward.address}`;
 		}
 	}
 

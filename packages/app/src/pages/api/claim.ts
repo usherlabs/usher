@@ -463,7 +463,7 @@ handler.router.use(withAuth).post(async (req, res) => {
 				amount: rewardsToPay,
 				tx: {
 					id: rewardTxId,
-					url: `https://viewblock.io/arweave/tx/${rewardTxId}`
+					url: `https://v2.viewblock.io/arweave/tx/${rewardTxId}`
 				}
 			};
 			return res.json({

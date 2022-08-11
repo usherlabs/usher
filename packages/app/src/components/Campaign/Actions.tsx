@@ -1,6 +1,5 @@
 import React from "react";
 import { Button, Pane, Tooltip } from "evergreen-ui";
-import Image from "next/image";
 
 import { Campaign } from "@/types";
 import Anchor from "@/components/Anchor";
