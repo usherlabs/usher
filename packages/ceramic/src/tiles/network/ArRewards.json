@@ -1,9 +1,0 @@
-{
-	"fee": {
-		"address": "ksFTLgrwQGtNrhRz6MWyd3a4lvK1Oh-QF1HYcEeeFVk",
-		"multipler": 0.1,
-		"recurring": 0.0086,
-		"minimum": 0.004
-	},
-	"set": []
-}

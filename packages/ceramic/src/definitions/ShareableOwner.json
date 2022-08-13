@@ -1,5 +1,0 @@
-{
-	"name": "A shareable owner",
-	"description": "Data and/or reference to data for a DID that is shared amongst 1 or more DIDs. Used by Usher.so to aggregate access to data across connected Wallets.",
-	"schema": "ceramic://"
-}

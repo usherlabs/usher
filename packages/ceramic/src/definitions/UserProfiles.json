@@ -1,5 +1,0 @@
-{
-	"name": "A profiles set",
-	"description": "A set of user profile stream ids associated to a DID. This represents user owned profile data on Usher.so",
-	"schema": "ceramic://"
-}

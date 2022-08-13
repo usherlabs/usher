@@ -30,6 +30,9 @@ export const hcaptchaSiteKey = process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY;
 
 export const magicPublicKey = process.env.NEXT_PUBLIC_MAGIC_KEY;
 
+export const validatorApiEndpoint =
+	process.env.NEXT_PUBLIC_VALIDATOR_API_ENDPOINT;
+
 /* ========== SECURITY ========== */
 export const inviteOrigin = process.env.NEXT_PUBLIC_INVITE_ORIGIN;
 

@@ -1,5 +1,0 @@
-{
-	"name": "A partnerships set",
-	"description": "A set of partnership stream ids associated to a DID. This map represents partnerships to different campaigns on Usher.so",
-	"schema": "ceramic://"
-}
