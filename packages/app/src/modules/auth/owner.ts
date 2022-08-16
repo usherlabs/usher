@@ -14,7 +14,7 @@ import uniq from "lodash/uniq";
 import uniqWith from "lodash/uniqWith";
 import isEqual from "lodash/isEqual";
 
-import { ShareableOwnerModel } from "@usher/ceramic";
+import { ShareableOwnerModel } from "@usher.so/datamodels";
 
 import { Partnership, PartnershipData, Chains } from "@/types";
 import Auth from "./auth";

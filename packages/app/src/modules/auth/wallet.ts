@@ -3,7 +3,7 @@
 /**
  * A class representing a single authentication (wallet connection)
  */
-import { WalletModel } from "@usher/ceramic";
+import { WalletModel } from "@usher.so/datamodels";
 
 import { Wallet } from "@/types";
 import Auth from "./auth";

@@ -71,7 +71,10 @@ export type CampaignReward = {
 
 export type Campaign = {
 	id: string;
-	owner: string;
+	owner: {
+		chain: Chains;
+		address: string;
+	};
 	events: {
 		// The strategy for which to calculate the rewards. Flat rewards are calculated per event. Percentage based rewards are calculated based on an amount value submitted at the point of conversion.
 		strategy: CampaignStrategies;
@@ -159,7 +162,10 @@ export type Conversion = {
 };
 
 export type Claim = {
-	to: string;
+	to: {
+		chain: Chains;
+		address: string;
+	};
 	fee: number;
 	amount: number;
 	tx?: {

@@ -7,8 +7,10 @@ import { aql } from "arangojs";
 import { useQuery } from "react-query";
 import isEmpty from "lodash/isEmpty";
 import ono from "@jsdevtools/ono";
+import { randomString } from "@stablelib/random";
+import * as uint8arrays from "uint8arrays";
 
-import { useUser } from "@/hooks/";
+import { useUser, useArConnect } from "@/hooks/";
 import { MAX_SCREEN_WIDTH } from "@/constants";
 import ClaimButton from "@/components/Campaign/ClaimButton";
 import Funds from "@/components/Campaign/Funds";
@@ -22,7 +24,8 @@ import {
 	CampaignReward,
 	PartnershipMetrics,
 	Wallet,
-	Claim
+	Claim,
+	Connections
 } from "@/types";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
@@ -40,8 +43,10 @@ import { useSeedData } from "@/env-config";
 import * as mediaQueries from "@/utils/media-queries";
 import { getArangoClient } from "@/utils/arango-client";
 import * as api from "@/api";
+import * as validatorApi from "@/validator-api";
 import Authenticate from "@/modules/auth";
 import { AppEvents, events } from "@/utils/events";
+import { Base64 } from "js-base64";
 
 type CampaignPageProps = {
 	id: string;
@@ -73,6 +78,7 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ campaign }) => {
 	} = useUser();
 	const router = useRouter();
 	const loginUrl = useRedir("/login");
+	const [getArConnect] = useArConnect();
 	const isLoggedIn = wallets.length > 0;
 
 	const [isPartnering, setPartnering] = useState(false);
@@ -168,11 +174,52 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ campaign }) => {
 			setClaiming(true);
 			try {
 				const authInstance = Authenticate.getInstance();
-				const authToken = await authInstance.getAuthToken();
-				const response = await api.claim(authToken).post(
-					viewingPartnerships.map((p) => p.id),
-					wallet.address
-				);
+				let walletSig = "";
+				const partnershipParam = viewingPartnerships.map((p) => p.id);
+				const message = randomString(32);
+				const owner = authInstance.getOwner();
+				if (!owner) {
+					throw new Error("No owner exists for user");
+				}
+				switch (wallet.chain) {
+					case Chains.ARWEAVE: {
+						if (wallet.connection === Connections.ARCONNECT) {
+							const arconnect = getArConnect();
+							const walletSigBuf = await arconnect.signature(
+								uint8arrays.fromString(message),
+								{
+									name: "RSA-PSS",
+									hash: {
+										name: "SHA-256"
+									}
+								}
+							);
+							walletSig = Base64.encodeURI(uint8arrays.toString(walletSigBuf));
+						} else if (wallet.connection === Connections.MAGIC) {
+							// TODO
+						} else {
+							// TODO: Toast a message
+						}
+						break;
+					}
+					default: {
+						toaster.warning(
+							`No wallet connected capable of making claim. Please connect a wallet to receive rewards for this blockchain.`
+						);
+						return null;
+					}
+				}
+				const sigRaw = await owner.did.createJWS(message, {
+					did: owner.did.id
+				});
+				const sig = Base64.encodeURI(JSON.stringify(sigRaw));
+				const response = await validatorApi
+					.claim()
+					.post(partnershipParam, sig, message, {
+						chain: wallet.chain,
+						address: wallet.address,
+						sig: walletSig
+					});
 				if (response.success && response.data) {
 					const claim = response.data;
 					if (claim.tx) {
@@ -222,9 +269,13 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ campaign }) => {
 			return () => {};
 		}
 
-		if (campaign.funds) {
-			setFunds(campaign.funds);
-		}
+		(async () => {
+			if (campaign.funds && campaign.funds > 0) {
+				const res = await validatorApi.info().get();
+				const loadedFunds = campaign.funds * (1 - res.feeMultiplier);
+				setFunds(loadedFunds);
+			}
+		})();
 
 		return () => {};
 	}, [campaign]);

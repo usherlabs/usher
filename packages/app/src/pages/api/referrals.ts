@@ -4,7 +4,7 @@ import * as uint8arrays from "uint8arrays";
 import { TileLoader } from "@glazed/tile-loader";
 import { aql } from "arangojs";
 import { ArangoError } from "arangojs/error";
-import { ShareableOwnerModel } from "@usher/ceramic";
+import { ShareableOwnerModel } from "@usher.so/datamodels";
 
 import { PartnershipData, Partnership } from "@/types";
 import { useRouteHandler } from "@/server/middleware";

@@ -5208,6 +5208,11 @@
   resolved "https://registry.yarnpkg.com/@ungap/promise-all-settled/-/promise-all-settled-1.1.2.tgz#aa58042711d6e3275dd37dc597e5d31e8c290a44"
   integrity sha512-sL/cEvJWAnClXw0wHk85/2L0G6Sj8UB0Ctc1TEMbKSsmpRosqhwj9gWgFRZSrBr2f9tiXISwNhCPmlfqUqyb9Q==
 
+"@usher.so/datamodels@^0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@usher.so/datamodels/-/datamodels-0.0.5.tgz#0af15a83aca7a8ce67b93cbcd4e15cea9bd1c3ee"
+  integrity sha512-x+2vKtEivgOIUOkaN51WtP3tboGTu8jo/XuzCo1Izd0jC1NXADLJWL/tiPskxgNbGFcTi2ix1HcPcxdYi8UJ+g==
+
 "@weavery/clarity@^0.1.5":
   version "0.1.5"
   resolved "https://registry.yarnpkg.com/@weavery/clarity/-/clarity-0.1.5.tgz#f06bbb0dac7c63c6e2ccd76cda3e8b32b57f82c2"

@@ -127,29 +127,6 @@ export const referrals = () => ({
 	}
 });
 
-export const claim = (authToken: string) => {
-	const req = getAuthRequest(authToken);
-
-	return {
-		post(
-			partnership: string | string[],
-			to: string
-		): Promise<{
-			success: boolean;
-			data?: Claim;
-		}> {
-			return req
-				.post("claim", {
-					json: {
-						partnership,
-						to
-					}
-				})
-				.json();
-		}
-	};
-};
-
 export const profile = (authToken: string) => {
 	const req = getAuthRequest(authToken);
 

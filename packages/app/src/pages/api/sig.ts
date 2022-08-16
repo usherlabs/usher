@@ -5,7 +5,7 @@ import * as uint8arrays from "uint8arrays";
 import { aql } from "arangojs";
 import isEmpty from "lodash/isEmpty";
 import { TileLoader } from "@glazed/tile-loader";
-import { ShareableOwnerModel } from "@usher/ceramic";
+import { ShareableOwnerModel } from "@usher.so/datamodels";
 import cors from "cors";
 
 import { PartnershipData } from "@/types";

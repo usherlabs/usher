@@ -30,7 +30,7 @@
 		"@glazed/devtools": "^0.2.0",
 		"@glazed/did-datastore": "^0.3.1",
 		"@glazed/tile-loader": "^0.2.0",
-		"@usher/ceramic": "*",
+		"@usher.so/datamodels": "^0.0.5",
 		"arweave": "^1.11.4",
 		"chalk": "^5.0.1",
 		"commander": "^9.3.0",

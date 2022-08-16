@@ -23,7 +23,7 @@
 		"@glazed/tile-loader": "^0.2.0",
 		"@sentry/integrations": "^7.2.0",
 		"@sentry/node": "^7.2.0",
-		"@usher/ceramic": "*",
+		"@usher.so/datamodels": "^0.0.5",
 		"arangojs": "^7.8.0",
 		"arweave": "^1.11.4",
 		"aws-lambda": "^1.0.7",

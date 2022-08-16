@@ -10,7 +10,13 @@ export const claim = () => {
 	return {
 		post(
 			partnership: string | string[],
-			to: string
+			sig: string,
+			message: string,
+			to: {
+				chain: string;
+				address: string;
+				sig: string;
+			}
 		): Promise<{
 			success: boolean;
 			data?: Claim;
@@ -19,11 +25,24 @@ export const claim = () => {
 				.post("claim", {
 					json: {
 						partnership,
+						sig,
+						message,
 						to
-						// TODO: Add signature verification parameters -- ie. ensuring they own the wallet we're transferring to
 					}
 				})
 				.json();
+		}
+	};
+};
+
+export const info = () => {
+	return {
+		get(): Promise<{
+			version: string;
+			addresses: Record<string, string>;
+			feeMultiplier: number;
+		}> {
+			return request.get("info").json();
 		}
 	};
 };
