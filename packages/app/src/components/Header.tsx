@@ -1,4 +1,8 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, {
+	// useEffect,
+	// useState,
+	useCallback
+} from "react";
 import Image from "next/image";
 import {
 	Pane,
@@ -12,18 +16,18 @@ import {
 	Position,
 	LogOutIcon,
 	CogIcon,
-	MenuIcon,
+	// MenuIcon,
 	Badge
 } from "evergreen-ui";
 import { UilUserCircle, UilWallet } from "@iconscout/react-unicons";
-import { css, cx } from "@linaria/core";
-import { useRouter } from "next/router";
+import { css } from "@linaria/core";
+// import { useRouter } from "next/router";
 
 import Anchor from "@/components/Anchor";
 import { useUser } from "@/hooks";
 import useRedir from "@/hooks/use-redir";
 import * as mediaQueries from "@/utils/media-queries";
-import SideSheet from "@/components/SideSheet";
+import UrlSubmit from "@/components/UrlSubmit";
 
 import LogoImage from "@/assets/logo/Logo-Icon.svg";
 
@@ -33,23 +37,8 @@ type Props = {
 	onWalletClick: () => void;
 	onSettingsClick: () => void;
 	onLogoutClick: () => void;
+	createURL: (targetUrl: string) => void;
 };
-
-const menu = [
-	{
-		href: "/",
-		text: "My Partnerships"
-	},
-	{
-		href: "/explore",
-		text: "Explore"
-	},
-	{
-		href: "https://go.usher.so/register",
-		text: "Start a Campaign",
-		external: true
-	}
-];
 
 const Header: React.FC<Props> = ({
 	height,
@@ -57,6 +46,7 @@ const Header: React.FC<Props> = ({
 	onWalletClick,
 	onSettingsClick,
 	onLogoutClick,
+	createURL,
 	...props
 }) => {
 	const { colors } = useTheme();
@@ -64,32 +54,36 @@ const Header: React.FC<Props> = ({
 		user: { wallets },
 		isLoading: isWalletLoading
 	} = useUser();
-	const [currentPathname, setCurrentPathname] = useState("");
-	const [showMobileMenu, setShowMobileMenu] = useState(false);
+	// const [currentPathname, setCurrentPathname] = useState("");
+	// const [showMobileMenu, setShowMobileMenu] = useState(false);
 	const loginUrl = useRedir("/login");
-	const router = useRouter();
+	// const router = useRouter();
+
+	const onUrlSubmit = useCallback((value: string) => {
+		// Create new URL
+	}, []);
 
 	// Listen for route change and update the new url pathname
-	const onRouteChangeComplete = useCallback(
-		(url: string) => {
-			if (url !== currentPathname) {
-				setCurrentPathname(url);
-			}
-			setShowMobileMenu(false);
-		},
-		[currentPathname]
-	);
+	// const onRouteChangeComplete = useCallback(
+	// 	(url: string) => {
+	// 		if (url !== currentPathname) {
+	// 			setCurrentPathname(url);
+	// 		}
+	// 		// setShowMobileMenu(false);
+	// 	},
+	// 	[currentPathname]
+	// );
 
-	useEffect(() => {
-		if (typeof window !== "undefined") {
-			setCurrentPathname(window.location.pathname);
-		}
+	// useEffect(() => {
+	// 	if (typeof window !== "undefined") {
+	// 		setCurrentPathname(window.location.pathname);
+	// 	}
 
-		router.events.on("routeChangeComplete", onRouteChangeComplete);
-		return () => {
-			router.events.off("routeChangeComplete", onRouteChangeComplete);
-		};
-	}, []);
+	// 	router.events.on("routeChangeComplete", onRouteChangeComplete);
+	// 	return () => {
+	// 		router.events.off("routeChangeComplete", onRouteChangeComplete);
+	// 	};
+	// }, []);
 
 	const menuButtonProps = {
 		appearance: "minimal",
@@ -114,41 +108,6 @@ const Header: React.FC<Props> = ({
 			<UilUserCircle size="32" color={colors.gray700} />
 		</Button>
 	);
-
-	const MenuItems = menu.map((item) => (
-		<Anchor key={item.text} href={item.href} external={item.external || false}>
-			<Button
-				appearance="minimal"
-				height={height}
-				boxShadow="none !important"
-				position="relative"
-				className={cx(
-					css`
-						:hover label {
-							color: #000 !important;
-						}
-					`,
-					currentPathname === item.href
-						? css`
-							&:after {
-								content: "";
-								position: absolute;
-								background-color: #3366FF
-								left: 0;
-								right: 0;
-								bottom: 0;
-								height: 3px;
-							}
-						`
-						: ""
-				)}
-			>
-				<Label size={500} color={colors.gray800} pointerEvents="none">
-					{item.text}
-				</Label>
-			</Button>
-		</Anchor>
-	));
 
 	return (
 		<Pane width="100%" background="tint2" height={height} {...props}>
@@ -192,6 +151,9 @@ const Header: React.FC<Props> = ({
 						</Badge>
 					</Pane>
 				</Anchor>
+				<Pane>
+					<UrlSubmit onSubmit={onUrlSubmit} />
+				</Pane>
 				<Pane
 					paddingX={16}
 					className={css`
@@ -200,16 +162,6 @@ const Header: React.FC<Props> = ({
 						}
 					`}
 				>
-					<Pane
-						className={css`
-							display: inline-block;
-							${mediaQueries.isLarge} {
-								display: none !important;
-							}
-						`}
-					>
-						{MenuItems}
-					</Pane>
 					{wallets.length === 0 ? (
 						<Anchor href={loginUrl}>{ProfileButton}</Anchor>
 					) : (
@@ -257,43 +209,8 @@ const Header: React.FC<Props> = ({
 							</Pane>
 						)}
 					</Button>
-					<Button
-						{...menuButtonProps}
-						onClick={() => setShowMobileMenu(true)}
-						className={cx(
-							menuButtonProps.className,
-							css`
-								${mediaQueries.gtLarge} {
-									display: none !important;
-								}
-							`
-						)}
-					>
-						<MenuIcon size={32} />
-					</Button>
 				</Pane>
 			</Pane>
-			<SideSheet
-				isShown={showMobileMenu}
-				onCloseComplete={() => setShowMobileMenu(false)}
-				preventBodyScrolling
-			>
-				<Pane
-					display="flex"
-					flexDirection="column"
-					width="100%"
-					className={css`
-						button {
-							width: 100%;
-							text-align: left;
-							display: flex;
-							justify-content: flex-start;
-						}
-					`}
-				>
-					{MenuItems}
-				</Pane>
-			</SideSheet>
 		</Pane>
 	);
 };
