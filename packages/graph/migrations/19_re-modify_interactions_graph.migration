@@ -1,0 +1,25 @@
+type: graph
+action: modify
+name: Interactions
+edgedefinitions:
+  - collection: Engagements
+    from:
+      - Dids
+      - Partnerships
+    to:
+      - Partnerships
+      - Campaigns
+      - Claims
+      - Profiles
+      - Links
+  - collection: Referrals
+    from:
+      - Partnerships
+    to:
+      - Conversions
+      - Wallets
+  - collection: Connections
+    from:
+      - Links
+    to:
+      - Wallets
